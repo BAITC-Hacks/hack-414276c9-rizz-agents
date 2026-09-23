@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f4ef"><title>Аким на 5 часов — симулятор управления городом</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="/" aria-label="На главную"><span class="brand-mark">A</span><span>ГОРОДСКАЯ ЛАБОРАТОРИЯ<small>AI-симулятор решений</small></span></a><span class="mode"><i></i> Тренажёр управленческих решений</span></header>
+  <main>
+    <section class="intro"><div><p class="eyebrow">ASTANA INNOVATIONS · УПРАВЛЕНЧЕСКИЙ СИМУЛЯТОР</p><h1>Аким на 5 часов</h1><p class="lead">Разложите общий для всех команд виртуальный бюджет по транспорту, озеленению, соцсфере, безопасности и городским сервисам. Примите ровно пять решений и сразу увидьте их последствия для Astana Quality of Life Score.</p><p class="owner">Владелец задачи: <strong>Astana Innovations</strong></p></div><div class="intro-stamp"><b>5</b><span>решений<br>на сценарий</span></div></section>
+    <section class="workspace">
+      <div class="builder panel">
+        <div class="section-heading"><div><p class="eyebrow">ВАШ СЦЕНАРИЙ</p><h2>Выберите меры</h2></div><button id="recommend" class="text-button">✦ Предложить план для Нуры</button></div>
+        <div class="budget-strip"><div><span>Доступный бюджет</span><strong><b id="spent">0</b> <small>/ 100 ед.</small></strong></div><div class="progress"><span id="budgetBar"></span></div><span id="budgetStatus" class="budget-status">Осталось 100</span></div>
+        <div id="slots" class="slots"></div>
+        <div class="catalog-heading"><h3>Каталог мер</h3><span>Стоимость и эффект на горизонте 8 кварталов</span></div>
+        <div id="catalog" class="catalog"></div>
+        <div class="rule-note"><span>ⓘ</span><p>Ровно 5 решений · не больше 2 мер на направление · в пределах 100 ед. Выберите район для районных мер.</p></div>
+        <button id="calculate" class="primary-button">Рассчитать сценарий <span>→</span></button>
+        <div id="validation" class="validation" aria-live="polite"></div>
+      </div>
+      <aside class="side-column">
+        <div class="panel score-panel"><div class="section-heading"><div><p class="eyebrow">ОЦЕНКА СЦЕНАРИЯ</p><h2>Качество жизни</h2></div><span class="score-icon">↗</span></div><div class="score-number" id="score">—</div><div class="score-change" id="scoreChange">Astana Quality of Life Score</div><div class="score-foot"><span>Исходный балл</span><b>52.56</b></div></div>
+        <div class="panel districts-panel"><div class="section-heading"><div><p class="eyebrow">ГДЕ МЕНЯЕТСЯ РЕЗУЛЬТАТ</p><h2>Районы</h2></div></div><div id="districtResults" class="district-results"><p class="empty-state">Рассчитайте сценарий, чтобы сравнить изменения.</p></div></div>
+        <div class="panel agent-panel"><div class="agent-title"><span class="agent-avatar">✳</span><div><p class="eyebrow">AI-АГЕНТ</p><h2>Анализ решений</h2></div><span id="aiBadge" class="ai-badge">ГОТОВ</span></div><div id="agentText" class="agent-text">Выберите пять мер и нажмите «Рассчитать сценарий». Агент объяснит эффект и компромиссы, опираясь на результаты модели.</div><button id="analyze" class="secondary-button" disabled>Объяснить результат <span>→</span></button></div>
+      </aside>
+    </section>
+    <footer><span>Модель использует синтетические данные районов из набора HackAlem.</span><span>Числа считает симулятор · AI объясняет результат</span></footer>
+  </main>
+  <script type="module" src="/app.js"></script>
+</body></html>
