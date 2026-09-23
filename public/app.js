@@ -2,6 +2,7 @@ const $ = id => document.getElementById(id);
 const state = { data:null, selected:[], result:null };
 const esc = text => String(text).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function api(url, options={}) { const res=await fetch(url,{headers:{'Content-Type':'application/json'},...options}); const data=await res.json(); if(!res.ok) throw new Error(data.error||'Ошибка запроса.'); return data; }
+function setFlowStep(step) { document.querySelectorAll('.flow-steps li').forEach((item,index)=>{item.classList.toggle('is-active',index===step-1);item.classList.toggle('is-done',index<step-1)}); }
 function render() {
   const {measures,districts,budget}=state.data;
   const cost=state.selected.reduce((sum,s)=>sum+measures.find(m=>m.id===s.measureId).cost,0);
@@ -9,12 +10,44 @@ function render() {
   $('slots').innerHTML=Array.from({length:5},(_,i)=>{const selected=state.selected[i];if(!selected)return `<div class="slot"><span class="slot-n">РЕШЕНИЕ 0${i+1}</span><strong>Выберите меру ниже</strong></div>`;const m=measures.find(x=>x.id===selected.measureId);const place=m.type==='city'?'весь город':districts.find(d=>d.id===selected.districtId)?.name;return `<div class="slot filled"><span class="slot-n">РЕШЕНИЕ 0${i+1} · ${m.id}</span><strong>${esc(m.label)} · ${esc(place||'район?')}</strong><button data-remove="${i}" aria-label="Удалить меру">×</button></div>`}).join('');
   $('catalog').innerHTML=measures.map(m=>{const present=state.selected.some(s=>s.measureId===m.id);const areaName=m.area;const effect=Object.entries(m.effects).map(([k,v])=>`${k} ${v>0?'+':''}${v}`).join(' · ');const districtSelect=m.type==='district'?`<select data-district="${m.id}" aria-label="Район для ${esc(m.label)}"><option value="">Выберите район</option>${districts.map(d=>`<option value="${d.id}">${esc(d.name)}</option>`).join('')}</select>`:`<span class="meta">Все районы · лаг ${m.lag} кв.</span>`;return `<article class="measure"><div><div class="area">${esc(areaName)} · ${m.type==='city'?'город':'район'}</div><h4>${esc(m.label)}</h4><div class="meta">${effect} · лаг ${m.lag} кв.</div></div><span class="cost">${m.cost} ед.</span>${districtSelect}<button class="add-button" data-add="${m.id}" ${present||state.selected.length>=5?'disabled':''}>${present?'Добавлено':'Добавить +'}</button></article>`}).join('');
   document.querySelectorAll('[data-remove]').forEach(b=>b.onclick=()=>{state.selected.splice(Number(b.dataset.remove),1);invalidate();render()});
-  document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{const m=measures.find(x=>x.id===b.dataset.add);const districtId=m.type==='district'?document.querySelector(`[data-district="${m.id}"]`).value:null;if(m.type==='district'&&!districtId){$('validation').textContent='Сначала выберите район для этой меры.';return;}state.selected.push({measureId:m.id,districtId});invalidate();render()});
-  $('calculate').disabled=state.selected.length!==5; $('calculate').style.opacity=state.selected.length===5?'1':'.72';
+  document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{
+    const m=measures.find(x=>x.id===b.dataset.add);
+    const districtId=m.type==='district'?document.querySelector(`[data-district="${m.id}"]`).value:null;
+    if(m.type==='district'&&!districtId){$('validation').textContent='Сначала выберите район для этой меры.';return;}
+    const currentCost=state.selected.reduce((sum,s)=>sum+measures.find(x=>x.id===s.measureId).cost,0);
+    if(currentCost+m.cost>budget){$('validation').textContent=`Недостаточно бюджета: мера стоит ${m.cost}, осталось ${budget-currentCost}. Удалите другую меру или выберите более дешёвую.`;return;}
+    if(state.selected.filter(s=>measures.find(x=>x.id===s.measureId).area===m.area).length>=2){$('validation').textContent='Можно выбрать не более двух мер в одном направлении.';return;}
+    if((m.id==='M1'&&state.selected.some(s=>s.measureId==='M3'))||(m.id==='M3'&&state.selected.some(s=>s.measureId==='M1'))){$('validation').textContent='M1 и M3 несовместимы: выберите автобусные полосы или линию LRT.';return;}
+    const sameDistrictConflict=state.selected.some(s=>((m.id==='M4'&&s.measureId==='M7')||(m.id==='M7'&&s.measureId==='M4')||(m.id==='M5'&&s.measureId==='M13')||(m.id==='M13'&&s.measureId==='M5'))&&s.districtId===districtId);
+    if(sameDistrictConflict){$('validation').textContent='Эти меры нельзя разместить в одном районе.';return;}
+    state.selected.push({measureId:m.id,districtId});invalidate();render();
+  });
+  const missing=5-state.selected.length;
+  $('selectionStatus').textContent=missing===0?'Выбраны все 5 мер. Сценарий готов к расчёту.':`Выбрано ${state.selected.length} из 5 мер. Добавьте ещё ${missing}.`;
+  $('selectionStatus').classList.toggle('ready',missing===0);
+  $('budgetStatus').classList.toggle('over-budget',cost>budget);
+  setFlowStep(missing===0?2:1);
+  $('calculate').disabled=missing!==0; $('calculate').style.opacity=missing===0?'1':'.72';
 }
 function invalidate(){state.result=null;$('analyze').disabled=true;$('score').textContent='—';$('scoreChange').textContent='Astana Quality of Life Score';$('scoreChange').className='score-change';$('districtResults').innerHTML='<p class="empty-state">Нажмите «Рассчитать сценарий», чтобы увидеть результат.</p>';$('agentText').textContent='Сценарий изменён. Пересчитайте его, чтобы агент объяснил результат.';$('aiBadge').textContent='ГОТОВ';$('validation').textContent='';}
-function showResult(r){state.result=r;if(!r.valid){$('validation').textContent=r.issues.join(' ');return;} $('validation').textContent='';$('score').textContent=r.score.toFixed(2);$('scoreChange').textContent=`${r.delta>=0?'+':''}${r.delta.toFixed(2)} к базовому сценарию`; $('scoreChange').className=`score-change ${r.delta>=0?'positive':''}`;$('districtResults').innerHTML=r.districts.map(d=>`<div class="district-row"><span class="district-name">${esc(d.name)}</span><div class="district-track"><span style="width:${d.score}%"></span></div><span class="district-numbers"><b>${d.score.toFixed(1)}</b> <em>${d.score-d.before>=0?'+':''}${(d.score-d.before).toFixed(1)}</em></span></div>`).join('');$('agentText').textContent=`Выбранные меры стоят ${r.cost} из 100 ед. Остаток бюджета: ${r.remaining}. Нажмите кнопку ниже, чтобы получить разбор эффекта и компромиссов.`;$('analyze').disabled=false;$('aiBadge').textContent='ГОТОВ';}
-$('calculate').addEventListener('click',async()=>{try{const r=await api('/api/evaluate',{method:'POST',body:JSON.stringify({selections:state.selected})});showResult(r)}catch(e){$('validation').textContent=e.message}});
+function showResult(r){
+  state.result=r;
+  if(!r.valid){setFlowStep(2);$('validation').textContent=r.issues.join(' ');return;}
+  setFlowStep(4);$('validation').textContent='';$('score').textContent=r.score.toFixed(2);
+  $('scoreChange').textContent=`${r.delta>=0?'+':''}${r.delta.toFixed(2)} к базовому сценарию`;
+  $('scoreChange').className=`score-change ${r.delta>=0?'positive':''}`;
+  $('districtResults').innerHTML=r.districts.map(d=>`<div class="district-row"><span class="district-name">${esc(d.name)}</span><div class="district-track"><span style="width:${d.score}%"></span></div><span class="district-numbers"><b>${d.score.toFixed(1)}</b> <em>${d.score-d.before>=0?'+':''}${(d.score-d.before).toFixed(1)}</em></span></div>`).join('');
+  $('agentText').textContent=`Выбранные меры стоят ${r.cost} из 100 ед. Остаток бюджета: ${r.remaining}. Нажмите кнопку ниже, чтобы получить разбор эффекта и компромиссов.`;
+  $('analyze').disabled=false;$('aiBadge').textContent='ГОТОВ';
+}
+$('calculate').addEventListener('click',async()=>{
+  const button=$('calculate');
+  button.disabled=true;button.setAttribute('aria-busy','true');button.firstChild.textContent='Рассчитываем… ';
+  $('validation').textContent='';setFlowStep(3);
+  try{const r=await api('/api/evaluate',{method:'POST',body:JSON.stringify({selections:state.selected})});showResult(r)}
+  catch(e){setFlowStep(2);$('validation').textContent=e.message}
+  finally{button.disabled=state.selected.length!==5;button.removeAttribute('aria-busy');button.firstChild.textContent='Рассчитать сценарий ';}
+});
 $('recommend').addEventListener('click',async()=>{try{const r=await api('/api/recommend');state.selected=r.selected;invalidate();render();showResult(r)}catch(e){$('validation').textContent=e.message}});
 $('analyze').addEventListener('click',async()=>{if(!state.result)return; $('analyze').disabled=true;$('aiBadge').textContent='ДУМАЕТ…';$('agentText').textContent='AI-агент изучает рассчитанные эффекты выбранных мер…';try{const out=await api('/api/analyze',{method:'POST',body:JSON.stringify({result:state.result})});$('agentText').textContent=out.text;$('aiBadge').textContent=out.source==='openai'?'AI-АГЕНТ':'ЛОКАЛЬНО';if(out.note)$('agentText').textContent+=` ${out.note}`}catch(e){$('agentText').textContent=e.message;$('agentText').classList.add('error')}finally{$('analyze').disabled=false}});
 try{state.data=await api('/api/data');render()}catch(e){$('validation').textContent=e.message}
