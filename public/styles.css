@@ -235,3 +235,10 @@ body{background:radial-gradient(ellipse at 92% 0%,#e7f0f2 0,transparent 29%),lin
 .crisis-limit strong{color:#687044}
 .crisis-suggestion strong{color:#4f7689}
 @media(max-width:620px){.crisis-card-title{align-items:flex-start}.crisis-status{max-width:112px;text-align:center}.stress-intro{font-size:10px}}
+/* Spacing correction for the crisis review card */
+.stress-panel{padding:20px}
+.stress-heading{gap:12px;margin-bottom:16px}
+.stress-heading .eyebrow{margin-bottom:6px}
+.stress-intro{font-size:13px;line-height:1.65;margin:0 0 18px}
+.stress-panel>#stressTest{margin-top:2px}
+@media(max-width:620px){.stress-panel{padding:16px}.stress-heading{gap:9px;margin-bottom:13px}.stress-intro{font-size:12px;line-height:1.6;margin-bottom:15px}}
