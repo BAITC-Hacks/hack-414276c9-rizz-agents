@@ -15,7 +15,20 @@ function render() {
 }
 function invalidate(){state.result=null;$('analyze').disabled=true;$('analyze').innerHTML='Сначала рассчитайте сценарий <span>→</span>';$('score').textContent='—';$('scoreChange').textContent='Astana Quality of Life Score';$('scoreChange').className='score-change';$('districtResults').innerHTML='<p class="empty-state">Нажмите «Рассчитать сценарий», чтобы увидеть результат.</p>';$('agentText').textContent='Сценарий изменён. Пересчитайте его, чтобы агент объяснил результат.';$('aiBadge').textContent='ГОТОВ';$('validation').textContent='';}
 function showResult(r){state.result=r;if(!r.valid){$('validation').textContent=r.issues.join(' ');$('analyze').disabled=true;$('analyze').innerHTML='Исправьте выбор мер <span>→</span>';return;} $('validation').textContent='';$('score').textContent=r.score.toFixed(2);$('scoreChange').textContent=`${r.delta>=0?'+':''}${r.delta.toFixed(2)} к базовому сценарию`; $('scoreChange').className=`score-change ${r.delta>=0?'positive':''}`;$('districtResults').innerHTML=r.districts.map(d=>`<div class="district-row"><span class="district-name">${esc(d.name)}</span><div class="district-track"><span style="width:${d.score}%"></span></div><span class="district-numbers"><b>${d.score.toFixed(1)}</b> <em>${d.score-d.before>=0?'+':''}${(d.score-d.before).toFixed(1)}</em></span></div>`).join('');$('agentText').textContent=`Выбранные меры стоят ${r.cost} из 100 ед. Остаток бюджета: ${r.remaining}. Нажмите кнопку ниже, чтобы получить разбор эффекта и компромиссов.`;$('analyze').disabled=false;$('analyze').innerHTML='Объяснить результат <span>→</span>';$('aiBadge').textContent='ГОТОВ';}
+function renderAnalysis(text){
+  const box=$('agentText'); box.replaceChildren(); box.classList.remove('error');
+  const normalized=String(text).replace(/\r/g,'').replace(/\s+(?=(?:Итог|Польза|Риск|Следующий шаг|На что обратить внимание)\s*[:—-])/gi,'\n');
+  const lines=normalized.split('\n').map(line=>line.trim()).filter(Boolean);
+  for(const raw of lines){
+    const line=raw.replace(/^(?:[-*•]\s*)/,'').replace(/\*\*/g,'');
+    const paragraph=document.createElement('p');
+    const heading=line.match(/^(Итог|Польза|Риск|Следующий шаг|На что обратить внимание)\s*[:—-]\s*(.*)$/i);
+    if(heading){const strong=document.createElement('strong');strong.textContent=`${heading[1]} `;paragraph.append(strong,document.createTextNode(heading[2]));}
+    else paragraph.textContent=line;
+    box.appendChild(paragraph);
+  }
+}
 $('calculate').addEventListener('click',async()=>{try{const r=await api('/api/evaluate',{method:'POST',body:JSON.stringify({selections:state.selected})});showResult(r)}catch(e){$('validation').textContent=e.message}});
 $('recommend').addEventListener('click',async()=>{try{const r=await api('/api/recommend');state.selected=r.selected;invalidate();render();showResult(r)}catch(e){$('validation').textContent=e.message}});
-$('analyze').addEventListener('click',async()=>{if(!state.result)return; $('analyze').disabled=true;$('aiBadge').textContent='ДУМАЕТ…';$('agentText').textContent='AI-агент изучает рассчитанные эффекты выбранных мер…';try{const out=await api('/api/analyze',{method:'POST',body:JSON.stringify({result:state.result})});$('agentText').textContent=out.text;$('aiBadge').textContent=out.source==='openai'?'AI-АГЕНТ':'ЛОКАЛЬНО';if(out.note)$('agentText').textContent+=` ${out.note}`}catch(e){$('agentText').textContent=e.message;$('agentText').classList.add('error')}finally{$('analyze').disabled=false}});
+$('analyze').addEventListener('click',async()=>{if(!state.result)return; $('analyze').disabled=true;$('aiBadge').textContent='ДУМАЕТ…';$('agentText').textContent='AI-агент готовит короткий разбор сценария…';try{const out=await api('/api/analyze',{method:'POST',body:JSON.stringify({result:state.result})});renderAnalysis(out.text);$('aiBadge').textContent=out.source==='openai'?'AI-АГЕНТ':'ЛОКАЛЬНО';if(out.note){const notice=document.createElement('p');notice.className='agent-note';notice.textContent=out.note;$('agentText').appendChild(notice)}}catch(e){$('agentText').textContent=e.message;$('agentText').classList.add('error')}finally{$('analyze').disabled=false}});
 try{state.data=await api('/api/data');render()}catch(e){$('validation').textContent=e.message}

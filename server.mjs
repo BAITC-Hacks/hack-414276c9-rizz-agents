@@ -42,9 +42,17 @@ async function readJson(req) {
 function fallbackExplanation(result) {
   const nura = result.districts.find(d => d.id === 'nura');
   const start = DATA.districts.find(d => d.id === 'nura');
+  const startScore = INDICATORS.reduce((sum, indicator) => sum + start.indicators[indicator.id] * WEIGHTS[indicator.id], 0);
   const weakest = result.indicatorsAfter.find(x => x.id === 'T2');
   const inNura = result.actions.filter(a => a.district === 'Нура').map(a => a.label);
-  return `Сценарий повышает городской балл с ${result.baseScore.toFixed(2)} до ${result.score.toFixed(2)}. В Нуре средняя оценка меняется с ${start.score.toFixed(2)} до ${nura.score.toFixed(2)}. В районе выбраны меры: ${inNura.join(', ')}. ${weakest && weakest.after < 50 ? `Доступность общественного транспорта остаётся слабым местом (${weakest.after.toFixed(1)} из 100);` : 'Проверьте оставшиеся слабые показатели по районам;'} сравните этот набор с альтернативой, чтобы оценить компромисс между направлениями.`;
+  return [
+    `Итог: городской балл вырос с ${result.baseScore.toFixed(2)} до ${result.score.toFixed(2)} (+${result.delta.toFixed(2)}).`,
+    `Польза: в Нуре средняя оценка выросла с ${startScore.toFixed(2)} до ${nura.score.toFixed(2)}. Там выбраны меры: ${inNura.join(', ')}.`,
+    weakest && weakest.after < 50
+      ? `На что обратить внимание: доступность общественного транспорта всё ещё низкая — ${weakest.after.toFixed(1)} из 100.`
+      : 'На что обратить внимание: сравните, как выбранные меры повлияли на все районы.',
+    'Следующий шаг: дождитесь завершения мер с длительным сроком запуска и сравните сценарий с альтернативой.'
+  ].join('\n');
 }
 
 async function askAi(result) {
@@ -55,15 +63,26 @@ async function askAi(result) {
     headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model: process.env.OPENAI_MODEL || 'gpt-5-mini',
-      instructions: 'Ты AI-аналитик городского симулятора. Отвечай по-русски кратко и понятно. Используй только переданные факты и рассчитанные числа. Не пересчитывай их, не придумывай статистику и не называй синтетические данные реальными. Объясни изменение Score, пользу, компромисс и следующий шаг.',
-      input: JSON.stringify(result),
+      instructions: 'Ты AI-аналитик городского симулятора. Отвечай только по-русски и строго в 4 коротких строках с переносами: «Итог: ...», «Польза: ...», «Риск: ...», «Следующий шаг: ...». Максимум 70 слов всего. Объясняй понятными словами для широкой аудитории. Не используй английские названия полей вроде baseScore, delta, remaining, raw-коды T1/S1 и длинные списки мер или районов. Не пересчитывай значения и не добавляй чисел, которых нет во входных данных. Не называй синтетические данные реальными. Каждый пункт — не более одного короткого предложения.',
+      input: JSON.stringify({
+        'балл города до': result.baseScore,
+        'балл города после': result.score,
+        'изменение балла': result.delta,
+        'потрачено из бюджета': result.cost,
+        'остаток бюджета': result.remaining,
+        'изменение оценок районов': result.districts.map(d => ({ район: d.name, было: d.before, стало: d.score })),
+        'показатели города после мер': result.indicatorsAfter.map(i => ({ показатель: i.label, направление: i.area, значение: i.after })),
+        'выбранные меры': result.actions.map(a => ({ название: a.label, район: a.district, направление: a.area, срок_запуска_в_кварталах: a.lag }))
+      }),
+      reasoning: { effort: 'minimal' },
+      max_output_tokens: 600,
       store: false
     }),
     signal: AbortSignal.timeout(25000)
   });
   if (!response.ok) throw new Error(`OpenAI API вернул ошибку (${response.status}). Проверьте ключ и доступ к API.`);
   const payload = await response.json();
-  const text = payload.output?.flatMap(item => item.content || []).find(item => item.type === 'output_text')?.text;
+  const text = payload.output_text || payload.output?.flatMap(item => item.content || []).filter(item => item.type === 'output_text').map(item => item.text).join('\n');
   if (!text) throw new Error('AI не вернул текст. Попробуйте ещё раз.');
   return { text, source: 'openai' };
 }
