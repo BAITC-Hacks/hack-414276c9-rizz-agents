@@ -55,6 +55,31 @@
           <button id="stressTest" class="secondary-button" disabled>Проверить план на кризисы <span>→</span></button>
           <div id="stressResults" class="stress-results" hidden></div>
         </div>
+        <section id="defensePanel" class="panel defense-panel" aria-labelledby="defenseTitle" hidden>
+          <div class="defense-heading"><span class="defense-icon" aria-hidden="true">⚑</span><div><p class="eyebrow">ПРОВЕРКА РЕШЕНИЯ</p><h2 id="defenseTitle">Защити план — проверь альтернативу</h2></div><span class="ai-badge">ПЛАН СОХРАНЁН</span></div>
+          <p class="defense-intro">Красная команда найдёт слабое место по расчёту. Затем измените одну меру в копии плана и сравните результаты.</p>
+          <div id="redTeamChallenge" class="red-team-challenge" aria-live="polite"></div>
+          <p class="defense-data-note">Проверка использует только синтетические показатели симулятора. Реальные городские проблемы показаны отдельно в AI-штабе кризисов.</p>
+          <div class="alternative-editor">
+            <p class="alternative-label">Измените одну позицию в копии исходного плана</p>
+            <label for="alternativeSlot">Какую меру изменить?</label>
+            <select id="alternativeSlot"></select>
+            <label for="alternativeMeasure">На какую меру заменить?</label>
+            <select id="alternativeMeasure"></select>
+            <div id="alternativeDistrictField" class="alternative-district-field">
+              <label for="alternativeDistrict">Район для районной меры</label>
+              <select id="alternativeDistrict"></select>
+            </div>
+            <p class="alternative-hint">Можно заменить меру или перенести её в другой район. Исходный план не изменится.</p>
+            <button id="compareAlternative" class="secondary-button" type="button">Проверить альтернативу <span aria-hidden="true">→</span></button>
+            <p id="alternativeError" class="alternative-error" role="status" hidden></p>
+          </div>
+          <div id="alternativeComparison" class="alternative-comparison" aria-live="polite" hidden></div>
+          <div id="mayorBriefing" class="mayor-briefing" hidden>
+            <div class="briefing-heading"><strong>Коротко для защиты</strong><span>Брифинг акиму</span></div>
+            <div id="briefingText" class="briefing-text"></div>
+          </div>
+        </section>
       </aside>
     </section>
     <footer><span>Синтетические данные для хакатона · 8 кварталов</span><span>Расчёт выполняет модель города · AI объясняет результат</span></footer>
