@@ -8,25 +8,56 @@
 <body>
   <header class="topbar"><a class="brand" href="/" aria-label="На главную"><span class="brand-mark">A</span><span>ГОРОДСКАЯ ЛАБОРАТОРИЯ<small>AI-симулятор решений</small></span></a><span class="mode"><i></i> Тренажёр управленческих решений</span></header>
   <main>
-    <section class="intro"><div><p class="eyebrow">ASTANA INNOVATIONS · УПРАВЛЕНЧЕСКИЙ СИМУЛЯТОР</p><h1>Аким на 5 часов</h1><p class="lead">Разложите общий для всех команд виртуальный бюджет по транспорту, озеленению, соцсфере, безопасности и городским сервисам. Примите ровно пять решений и сразу увидьте их последствия для Astana Quality of Life Score.</p><p class="owner">Владелец задачи: <strong>Astana Innovations</strong></p></div><div class="intro-stamp"><b>5</b><span>решений<br>на сценарий</span></div></section>
+    <section class="intro"><div><p class="eyebrow">ЗАДАЧА ASTANA INNOVATIONS</p><h1>Аким на 5 часов</h1><p class="lead">Распределите общий бюджет между городскими инициативами. Выберите пять мер и сравните, как они меняют качество жизни в районах.</p></div><div class="intro-stamp"><b>100</b><span>общий бюджет<br>для каждой команды</span></div></section>
+    <section class="visual-guide" aria-label="Как работает симулятор">
+      <div class="flow-card panel">
+        <div class="guide-heading"><p class="eyebrow">КАК УСТРОЕН СЦЕНАРИЙ</p><span class="guide-caption">От бюджета к последствиям</span></div>
+        <ol class="flow-steps">
+          <li><span class="step-number">01</span><span><b>Выберите пять мер</b><small>Для города и районов</small></span></li>
+          <li><span class="step-arrow" aria-hidden="true">→</span><span class="step-number">02</span><span><b>Проверьте правила</b><small>Бюджет и ограничения</small></span></li>
+          <li><span class="step-arrow" aria-hidden="true">→</span><span class="step-number">03</span><span><b>Рассчитайте эффект</b><small>Показатели после мер</small></span></li>
+          <li><span class="step-arrow" aria-hidden="true">→</span><span class="step-number">04</span><span><b>Сравните районы</b><small>Итоговый балл и пояснение</small></span></li>
+        </ol>
+      </div>
+      <div class="score-formula panel">
+        <div class="guide-heading"><p class="eyebrow">КАК СЧИТАЕТСЯ ИТОГОВЫЙ БАЛЛ</p><span class="guide-caption">От 0 до 100</span></div>
+        <div class="formula-equation" aria-label="70 процентов среднего результата города плюс 30 процентов оценки самого слабого района минус штраф за показатели ниже 40">
+          <div class="formula-part"><strong>70%</strong><span>средний результат<br>по населению</span></div>
+          <span class="formula-sign">+</span>
+          <div class="formula-part"><strong>30%</strong><span>самый слабый<br>район</span></div>
+          <span class="formula-sign">−</span>
+          <div class="formula-part penalty"><strong>1 балл</strong><span>штраф за каждый показатель<br>ниже 40</span></div>
+        </div>
+      </div>
+    </section>
     <section class="workspace">
       <div class="builder panel">
-        <div class="section-heading"><div><p class="eyebrow">ВАШ СЦЕНАРИЙ</p><h2>Выберите меры</h2></div><button id="recommend" class="text-button">✦ Предложить план для Нуры</button></div>
+        <div class="section-heading"><div><p class="eyebrow">ВАШ СЦЕНАРИЙ</p><h2>Выберите меры</h2></div></div>
+        <div class="plan-picker"><label for="recommendDistrict">Быстрый план</label><select id="recommendDistrict"><option value="all">Сбалансированный план для города</option></select><button id="recommend" class="text-button">Подобрать план <span aria-hidden="true">→</span></button></div>
+        <div id="planNotice" class="plan-notice" hidden></div>
         <div class="budget-strip"><div><span>Доступный бюджет</span><strong><b id="spent">0</b> <small>/ 100 ед.</small></strong></div><div class="progress"><span id="budgetBar"></span></div><span id="budgetStatus" class="budget-status">Осталось 100</span></div>
         <div id="slots" class="slots"></div>
-        <div class="catalog-heading"><h3>Каталог мер</h3><span>Стоимость и эффект на горизонте 8 кварталов</span></div>
+        <div id="selectionStatus" class="selection-status" aria-live="polite">Выбрано 0 из 5 мер. Добавьте решения из каталога.</div>
+        <div class="catalog-heading"><h3>Каталог мер</h3><span>Стоимость и ожидаемый результат</span></div>
+        <div id="categoryFilters" class="category-filters" role="group" aria-label="Фильтр мер по направлениям"></div>
         <div id="catalog" class="catalog"></div>
-        <div class="rule-note"><span>ⓘ</span><p>Ровно 5 решений · не больше 2 мер на направление · в пределах 100 ед. Выберите район для районных мер.</p></div>
-        <button id="calculate" class="primary-button">Выбрать 5 мер <span>→</span></button>
+        <div class="rule-note"><span>ⓘ</span><p>Нужно выбрать ровно 5 мер: не больше 2 в одной категории и не дороже 100 единиц. Для районных мер укажите район.</p></div>
+        <button id="calculate" class="primary-button">Рассчитать сценарий <span>→</span></button>
         <div id="validation" class="validation" aria-live="polite"></div>
       </div>
       <aside class="side-column">
-        <div class="panel score-panel"><div class="section-heading"><div><p class="eyebrow">ОЦЕНКА СЦЕНАРИЯ</p><h2>Качество жизни</h2></div><span class="score-icon">↗</span></div><div class="score-number" id="score">—</div><div class="score-change" id="scoreChange">Astana Quality of Life Score</div><div class="score-foot"><span>Исходный балл</span><b>52.56</b></div></div>
-        <div class="panel districts-panel"><div class="section-heading"><div><p class="eyebrow">ГДЕ МЕНЯЕТСЯ РЕЗУЛЬТАТ</p><h2>Районы</h2></div></div><div id="districtResults" class="district-results"><p class="empty-state">Рассчитайте сценарий, чтобы сравнить изменения.</p></div></div>
-        <div class="panel agent-panel"><div class="agent-title"><span class="agent-avatar">✳</span><div><p class="eyebrow">AI-АГЕНТ</p><h2>Анализ решений</h2></div><span id="aiBadge" class="ai-badge">ГОТОВ</span></div><div id="agentText" class="agent-text">Нажмите «Предложить план для Нуры» для готового сценария или выберите пять мер. После расчёта станет доступен разбор AI-агента.</div><button id="analyze" class="secondary-button" disabled>Сначала рассчитайте сценарий <span>→</span></button></div>
+        <div class="panel score-panel"><div class="section-heading"><div><p class="eyebrow">ASTANA QUALITY OF LIFE SCORE</p><h2>Итоговый балл</h2></div><span class="score-icon">↗</span></div><div class="score-number" id="score">—</div><div class="score-change" id="scoreChange">Сначала рассчитайте сценарий</div><div class="score-foot"><span>Исходный балл города</span><b>52,56</b></div></div>
+        <div class="panel districts-panel"><div class="section-heading"><div><p class="eyebrow">СРАВНЕНИЕ РЕЗУЛЬТАТОВ</p><h2>До и после по районам</h2></div></div><div id="districtResults" class="district-results"><p class="empty-state">После расчёта здесь появится диаграмма пяти районов.</p></div></div>
+        <div class="panel agent-panel"><div class="agent-title"><span class="agent-avatar">✳</span><div><p class="eyebrow">ПОЯСНЕНИЕ РЕЗУЛЬТАТА</p><h2>AI-аналитик</h2></div><span id="aiBadge" class="ai-badge">ЖДЁТ РАСЧЁТА</span></div><div id="agentText" class="agent-text">Сначала выберите пять мер и рассчитайте сценарий. AI коротко объяснит пользу, риски и следующий шаг.</div><button id="analyze" class="secondary-button" disabled>Сначала рассчитайте сценарий <span>→</span></button></div>
+        <div class="panel stress-panel">
+          <div class="stress-heading"><span class="stress-icon" aria-hidden="true">⌁</span><div><p class="eyebrow">ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА</p><h2>AI-штаб кризисов</h2></div><span id="stressBadge" class="ai-badge">ПОСЛЕ РАСЧЁТА</span></div>
+          <p class="stress-intro">Сверит выбранные меры с пятью городскими рисками и покажет, где у модели есть пробелы. Score и ваш план останутся без изменений.</p>
+          <button id="stressTest" class="secondary-button" disabled>Проверить план на кризисы <span>→</span></button>
+          <div id="stressResults" class="stress-results" hidden></div>
+        </div>
       </aside>
     </section>
-    <footer><span>Модель использует синтетические данные районов из набора HackAlem.</span><span>Числа считает симулятор · AI объясняет результат</span></footer>
+    <footer><span>Синтетические данные для хакатона · 8 кварталов</span><span>Расчёт выполняет модель города · AI объясняет результат</span></footer>
   </main>
   <script type="module" src="/app.js"></script>
 </body></html>
