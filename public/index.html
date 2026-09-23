@@ -9,11 +9,33 @@
   <header class="topbar"><a class="brand" href="/" aria-label="На главную"><span class="brand-mark">A</span><span>ГОРОДСКАЯ ЛАБОРАТОРИЯ<small>AI-симулятор решений</small></span></a><span class="mode"><i></i> Тренажёр управленческих решений</span></header>
   <main>
     <section class="intro"><div><p class="eyebrow">ASTANA INNOVATIONS · УПРАВЛЕНЧЕСКИЙ СИМУЛЯТОР</p><h1>Аким на 5 часов</h1><p class="lead">Разложите общий для всех команд виртуальный бюджет по транспорту, озеленению, соцсфере, безопасности и городским сервисам. Примите ровно пять решений и сразу увидьте их последствия для Astana Quality of Life Score.</p><p class="owner">Владелец задачи: <strong>Astana Innovations</strong></p></div><div class="intro-stamp"><b>5</b><span>решений<br>на сценарий</span></div></section>
+    <section class="visual-guide" aria-label="Как работает симулятор">
+      <div class="flow-card panel">
+        <div class="guide-heading"><p class="eyebrow">КАК УСТРОЕН СЦЕНАРИЙ</p><span class="guide-caption">От бюджета к последствиям</span></div>
+        <ol class="flow-steps">
+          <li><span class="step-number">01</span><span><b>Выберите меры</b><small>5 решений для города и районов</small></span></li>
+          <li><span class="step-arrow" aria-hidden="true">→</span><span class="step-number">02</span><span><b>Проверьте бюджет</b><small>Стоимость и правила выбора</small></span></li>
+          <li><span class="step-arrow" aria-hidden="true">→</span><span class="step-number">03</span><span><b>Рассчитайте эффект</b><small>Сроки, показатели и синергии</small></span></li>
+          <li><span class="step-arrow" aria-hidden="true">→</span><span class="step-number">04</span><span><b>Изучите результат</b><small>Score, районы и объяснение AI</small></span></li>
+        </ol>
+      </div>
+      <div class="score-formula panel">
+        <div class="guide-heading"><p class="eyebrow">КАК ЧИТАТЬ SCORE</p><span class="guide-caption">Оценка от 0 до 100</span></div>
+        <div class="formula-equation" aria-label="70 процентов среднего результата города плюс 30 процентов оценки самого слабого района минус штраф за критические показатели">
+          <div class="formula-part"><strong>70%</strong><span>средний результат<br>по населению</span></div>
+          <span class="formula-sign">+</span>
+          <div class="formula-part"><strong>30%</strong><span>самый слабый<br>район</span></div>
+          <span class="formula-sign">−</span>
+          <div class="formula-part penalty"><strong>1 балл</strong><span>штраф за каждый показатель<br>ниже 40</span></div>
+        </div>
+      </div>
+    </section>
     <section class="workspace">
       <div class="builder panel">
         <div class="section-heading"><div><p class="eyebrow">ВАШ СЦЕНАРИЙ</p><h2>Выберите меры</h2></div><button id="recommend" class="text-button">✦ Предложить план для Нуры</button></div>
         <div class="budget-strip"><div><span>Доступный бюджет</span><strong><b id="spent">0</b> <small>/ 100 ед.</small></strong></div><div class="progress"><span id="budgetBar"></span></div><span id="budgetStatus" class="budget-status">Осталось 100</span></div>
         <div id="slots" class="slots"></div>
+        <div id="selectionStatus" class="selection-status" aria-live="polite">Выбрано 0 из 5 мер. Добавьте решения из каталога.</div>
         <div class="catalog-heading"><h3>Каталог мер</h3><span>Стоимость и эффект на горизонте 8 кварталов</span></div>
         <div id="catalog" class="catalog"></div>
         <div class="rule-note"><span>ⓘ</span><p>Ровно 5 решений · не больше 2 мер на направление · в пределах 100 ед. Выберите район для районных мер.</p></div>
