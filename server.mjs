@@ -172,7 +172,7 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`Аким на 5 часов запущен: http://localhost:${PORT}`);
   console.log(process.env.OPENAI_API_KEY ? 'OpenAI API: ключ найден.' : 'OpenAI API: ключ не найден; будет использоваться локальное пояснение.');
 });

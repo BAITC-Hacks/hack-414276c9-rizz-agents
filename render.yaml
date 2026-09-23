@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: akim-city-simulator
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/data
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
