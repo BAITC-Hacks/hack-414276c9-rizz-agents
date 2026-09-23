@@ -137,6 +137,9 @@ function render() {
 
 function invalidate() {
   state.result = null;
+  $('defensePanel').hidden = true;
+  $('alternativeComparison').hidden = true;
+  $('mayorBriefing').hidden = true;
   $('analyze').disabled = true;
   $('analyze').textContent = 'Сначала рассчитайте сценарий →';
   $('stressTest').disabled = true;
@@ -195,6 +198,113 @@ function showResult(result) {
     $('planNotice').innerHTML = `<strong>${esc(result.recommendation.name)}</strong><span>${esc(result.recommendation.description)}</span>`;
     $('planNotice').hidden = false;
   }
+  initDefenseMode(result);
+}
+
+function formatNumber(value, digits = 2) {
+  return Number(value).toFixed(digits).replace('.', ',');
+}
+
+function formatSigned(value, digits = 2) {
+  const number = Number(value);
+  return `${number > 0 ? '+' : ''}${formatNumber(number, digits)}`;
+}
+
+function weakestIndicator(result) {
+  const entries = result.districts.flatMap(district => Object.entries(district.indicators || {}).map(([id, value]) => ({
+    district,
+    id,
+    value: Number(value)
+  }))).filter(item => Number.isFinite(item.value));
+  return entries.sort((left, right) => left.value - right.value)[0] || null;
+}
+
+function initDefenseMode(result) {
+  $('defensePanel').hidden = false;
+  $('alternativeError').hidden = true;
+  $('alternativeComparison').hidden = true;
+  $('mayorBriefing').hidden = true;
+
+  const weak = weakestIndicator(result);
+  const indicator = state.data.indicators.find(item => item.id === weak?.id);
+  $('redTeamChallenge').textContent = weak && indicator
+    ? `Возражение: «${indicator.label}» в районе ${weak.district.name} — самое низкое значение после плана: ${formatNumber(weak.value, 1)} из 100. Проверьте, изменит ли это выбранная альтернатива.`
+    : 'Возражение: проверьте, какой районный показатель остаётся самым низким после плана.';
+
+  $('alternativeSlot').innerHTML = result.actions.map((action, index) =>
+    `<option value="${index}">${index + 1}. ${esc(action.label)} · ${esc(action.district)}</option>`
+  ).join('');
+  fillAlternativeChoices(0);
+}
+
+function fillAlternativeChoices(slotIndex) {
+  const original = state.result?.selected[slotIndex];
+  if (!original) return;
+  const usedElsewhere = new Set(state.result.selected.filter((_, index) => index !== slotIndex).map(selection => selection.measureId));
+  const options = state.data.measures.filter(measure => !usedElsewhere.has(measure.id));
+  $('alternativeMeasure').innerHTML = options.map(measure =>
+    `<option value="${esc(measure.id)}">${esc(measure.label)} · ${measure.cost} ед.</option>`
+  ).join('');
+  $('alternativeMeasure').value = original.measureId;
+  updateAlternativeDistrict(original.districtId);
+}
+
+function updateAlternativeDistrict(preferredDistrictId = null) {
+  const measure = state.data.measures.find(item => item.id === $('alternativeMeasure').value);
+  const field = $('alternativeDistrictField');
+  const select = $('alternativeDistrict');
+  const isDistrictMeasure = measure?.type === 'district';
+  const previous = select.value;
+  field.hidden = !isDistrictMeasure;
+  select.disabled = !isDistrictMeasure;
+  if (!isDistrictMeasure) return;
+  select.innerHTML = state.data.districts.map(district =>
+    `<option value="${esc(district.id)}">${esc(district.name)}</option>`
+  ).join('');
+  const requested = preferredDistrictId || previous;
+  select.value = state.data.districts.some(district => district.id === requested)
+    ? requested
+    : state.data.districts[0].id;
+}
+
+function renderAlternativeComparison(original, alternative, slotIndex) {
+  const box = $('alternativeComparison');
+  const fmt = value => formatNumber(value, 2);
+  const scoreChange = Number(alternative.score) - Number(original.score);
+  const costChange = Number(alternative.cost) - Number(original.cost);
+  const originalAction = original.actions[slotIndex];
+  const alternativeAction = alternative.actions[slotIndex];
+  const originalSelection = original.selected[slotIndex];
+  const alternativeSelection = alternative.selected[slotIndex];
+  const changeDescription = originalSelection.measureId === alternativeSelection.measureId
+    ? `Перенос: «${originalAction.label}» · ${originalAction.district} → ${alternativeAction.district}`
+    : `Замена: «${originalAction.label}» → «${alternativeAction.label}» · ${alternativeAction.district}`;
+  const rows = original.districts.map(district => {
+    const other = alternative.districts.find(item => item.id === district.id);
+    const difference = Number(other.score) - Number(district.score);
+    return `<tr><th scope="row">${esc(district.name)}</th><td>${fmt(district.score)}</td><td>${fmt(other.score)}</td><td class="${difference > 0 ? 'comparison-up' : difference < 0 ? 'comparison-down' : ''}">${formatSigned(difference, 2)}</td></tr>`;
+  }).join('');
+  box.innerHTML = `<div class="alternative-score-grid">
+      <div class="alternative-score-card"><span>Исходный план</span><strong>${fmt(original.score)} <small>из 100</small></strong><small>Расходы: ${original.cost} ед.</small></div>
+      <div class="alternative-score-card is-alternative"><span>Альтернатива</span><strong>${fmt(alternative.score)} <small>из 100</small></strong><small>Расходы: ${alternative.cost} ед.</small></div>
+    </div>
+    <p class="alternative-total-change">Разница: Score ${formatSigned(scoreChange, 2)} · расходы ${formatSigned(costChange, 0)} ед.</p>
+    <div class="comparison-table-wrap"><table class="comparison-table"><caption>Результаты по районам</caption><thead><tr><th scope="col">Район</th><th scope="col">Исходный</th><th scope="col">Альтернатива</th><th scope="col">Разница</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <p class="alternative-change-note">${esc(changeDescription)}</p>`;
+
+  const weakest = weakestIndicator(alternative);
+  const weakestLabel = state.data.indicators.find(item => item.id === weakest?.id)?.label;
+  const chosen = alternative.actions.map(action => action.label).join(', ');
+  const briefing = [
+    `План: ${chosen}.`,
+    `${changeDescription}.`,
+    `Городской Score: ${fmt(original.score)} → ${fmt(alternative.score)} (${formatSigned(scoreChange, 2)}); расходы: ${original.cost} → ${alternative.cost} из 100 ед.`,
+    weakest && weakestLabel ? `Компромисс: показатель «${weakestLabel}» в районе ${weakest.district.name} остаётся самым низким — ${formatNumber(weakest.value, 1)} из 100.` : '',
+    'Районные оценки в этом сценарии синтетические.'
+  ].filter(Boolean);
+  $('briefingText').textContent = briefing.join('\n');
+  box.hidden = false;
+  $('mayorBriefing').hidden = false;
 }
 
 function renderAnalysis(text) {
@@ -340,6 +450,71 @@ $('stressTest').addEventListener('click', async () => {
     button.disabled = false;
     button.removeAttribute('aria-busy');
     button.innerHTML = 'Проверить ещё раз <span aria-hidden="true">→</span>';
+  }
+});
+
+$('alternativeSlot').addEventListener('change', event => {
+  fillAlternativeChoices(Number(event.target.value));
+  $('alternativeError').hidden = true;
+  $('alternativeComparison').hidden = true;
+  $('mayorBriefing').hidden = true;
+});
+
+$('alternativeMeasure').addEventListener('change', () => {
+  const slotIndex = Number($('alternativeSlot').value);
+  updateAlternativeDistrict(state.result?.selected[slotIndex]?.districtId || null);
+  $('alternativeError').hidden = true;
+  $('alternativeComparison').hidden = true;
+  $('mayorBriefing').hidden = true;
+});
+
+$('alternativeDistrict').addEventListener('change', () => {
+  $('alternativeError').hidden = true;
+  $('alternativeComparison').hidden = true;
+  $('mayorBriefing').hidden = true;
+});
+
+$('compareAlternative').addEventListener('click', async () => {
+  if (!state.result?.valid) return;
+  const button = $('compareAlternative');
+  const slotIndex = Number($('alternativeSlot').value);
+  const measure = state.data.measures.find(item => item.id === $('alternativeMeasure').value);
+  const error = $('alternativeError');
+  error.hidden = true;
+  $('alternativeComparison').hidden = true;
+  $('mayorBriefing').hidden = true;
+
+  if (!measure || !Number.isInteger(slotIndex) || slotIndex < 0 || slotIndex >= state.result.selected.length) {
+    error.textContent = 'Выберите меру для изменения.';
+    error.hidden = false;
+    return;
+  }
+
+  const candidate = state.result.selected.map(selection => ({ ...selection }));
+  candidate[slotIndex] = {
+    measureId: measure.id,
+    districtId: measure.type === 'district' ? $('alternativeDistrict').value : null
+  };
+  if (candidate.every((selection, index) => selection.measureId === state.result.selected[index].measureId && selection.districtId === state.result.selected[index].districtId)) {
+    error.textContent = 'Выберите другую меру или другой район, чтобы получить альтернативный сценарий.';
+    error.hidden = false;
+    return;
+  }
+
+  button.disabled = true;
+  button.setAttribute('aria-busy', 'true');
+  button.innerHTML = 'Сравниваем планы…';
+  try {
+    const alternative = await api('/api/evaluate', { method: 'POST', body: JSON.stringify({ selections: candidate }) });
+    if (!alternative.valid) throw new Error(alternative.issues.join(' '));
+    renderAlternativeComparison(state.result, alternative, slotIndex);
+  } catch (failure) {
+    error.textContent = failure.message || 'Не удалось рассчитать альтернативу.';
+    error.hidden = false;
+  } finally {
+    button.disabled = false;
+    button.removeAttribute('aria-busy');
+    button.innerHTML = 'Проверить альтернативу <span aria-hidden="true">→</span>';
   }
 });
 

@@ -235,3 +235,53 @@ body{background:radial-gradient(ellipse at 92% 0%,#e7f0f2 0,transparent 29%),lin
 .crisis-limit strong{color:#687044}
 .crisis-suggestion strong{color:#4f7689}
 @media(max-width:620px){.crisis-card-title{align-items:flex-start}.crisis-status{max-width:112px;text-align:center}.stress-intro{font-size:10px}}
+/* Spacing correction for the crisis review card */
+.stress-panel{padding:20px}
+.stress-heading{gap:12px;margin-bottom:16px}
+.stress-heading .eyebrow{margin-bottom:6px}
+.stress-intro{font-size:13px;line-height:1.65;margin:0 0 18px}
+.stress-panel>#stressTest{margin-top:2px}
+@media(max-width:620px){.stress-panel{padding:16px}.stress-heading{gap:9px;margin-bottom:13px}.stress-intro{font-size:12px;line-height:1.6;margin-bottom:15px}}
+
+/* Plan defense and counterfactual comparison. */
+.defense-panel{display:grid;gap:13px;padding:20px;background:linear-gradient(155deg,#f7f8f3,#edf4f3);border-color:#dce6df}
+.defense-panel[hidden],.alternative-comparison[hidden],.mayor-briefing[hidden],.alternative-error[hidden]{display:none!important}
+.defense-heading{display:flex;align-items:center;gap:10px}
+.defense-heading>div{flex:1;min-width:0}
+.defense-heading h2{font:700 15px Manrope,sans-serif;margin:0;color:#2c3936}
+.defense-heading .eyebrow{margin-bottom:5px}
+.defense-icon{width:31px;height:31px;flex:0 0 31px;border-radius:9px;display:grid;place-items:center;background:#fbeec1;color:#67632e;font-size:17px}
+.red-team-challenge{padding:12px 13px;border:1px solid #eadfc9;border-left:3px solid #bc986a;border-radius:9px;background:#fffdf7;color:#4c5146;font-size:11px;line-height:1.6}
+.defense-data-note,.alternative-hint{margin:0;color:#77817a;font-size:9px;line-height:1.55}
+.alternative-editor{display:grid;gap:8px;padding:13px;border:1px solid #e1e6df;border-radius:10px;background:#fff}
+.alternative-label{margin:0 0 2px;font-size:11px;font-weight:700;color:#34463d}
+.alternative-editor label{margin-top:3px;color:#68766d;font-size:10px;font-weight:600}
+.alternative-editor select{width:100%;min-width:0;padding:10px 11px;border:1px solid #dce2d9;border-radius:8px;background:#fff;color:#33423a;font:12px 'DM Sans',Arial,sans-serif}
+.alternative-district-field{display:grid;gap:8px}
+.alternative-district-field[hidden]{display:none!important}
+.alternative-editor .secondary-button{margin-top:3px}
+.alternative-error{margin:0;color:#9a5944;font-size:10px;line-height:1.5}
+.alternative-comparison{display:grid;gap:10px}
+.alternative-score-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.alternative-score-card{display:grid;gap:5px;padding:11px;border:1px solid #e2e4da;border-radius:9px;background:#fff}
+.alternative-score-card>span{font-size:9px;color:#758078}
+.alternative-score-card>strong{font:700 20px Manrope;color:#3d5145}
+.alternative-score-card>strong small{font:500 9px 'DM Sans';color:#89928a}
+.alternative-score-card>small{font-size:9px;color:#768078}
+.alternative-score-card.is-alternative{border-color:#cbd9cd;background:#f7faf5}
+.alternative-total-change{margin:0;color:#4b6252;font-size:10px;font-weight:700}
+.comparison-table-wrap{overflow-x:auto;border:1px solid #e8e8df;border-radius:9px;background:#fff}
+.comparison-table{width:100%;border-collapse:collapse;text-align:left;font-size:9px;white-space:nowrap}
+.comparison-table caption{padding:9px 10px 6px;text-align:left;color:#627169;font-weight:700}
+.comparison-table th,.comparison-table td{padding:7px 8px;border-top:1px solid #efeee8}
+.comparison-table thead th{color:#7c867f;font-weight:600}
+.comparison-table tbody th{color:#35473c;font-weight:600}
+.comparison-table td{color:#4f5e55;font-variant-numeric:tabular-nums}
+.comparison-up{color:#58743f!important;font-weight:700}
+.comparison-down{color:#a05d45!important;font-weight:700}
+.alternative-change-note{margin:0;color:#6c786f;font-size:9px;line-height:1.5}
+.mayor-briefing{padding:12px;border:1px solid #e5dfc4;border-radius:9px;background:#fffdf5}
+.briefing-heading{display:flex;justify-content:space-between;gap:8px;margin-bottom:7px;color:#514f31;font-size:10px}
+.briefing-heading span{color:#89856a;font-size:9px}
+.briefing-text{color:#515b51;font-size:10px;line-height:1.65;white-space:pre-line}
+@media(max-width:620px){.defense-panel{padding:15px;gap:11px}.defense-heading{align-items:flex-start;flex-wrap:wrap}.defense-heading .ai-badge{margin-left:41px}.alternative-score-grid{grid-template-columns:1fr 1fr}.comparison-table th,.comparison-table td{padding:7px 6px}.red-team-challenge{font-size:10px}}

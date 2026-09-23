@@ -66,7 +66,7 @@ function modeledEffects(action) {
 export function assessCityCrises(result) {
   if (!result?.valid || !Array.isArray(result.actions)) throw new Error('Сначала рассчитайте допустимый сценарий.');
   return {
-    disclaimer: 'Городские проблемы подтверждаются источниками. Баллы и эффекты районов остаются синтетическими; стресс-тест не меняет расчёт сценария.',
+    disclaimer: 'Городской контекст не является оперативной сводкой. Баллы и эффекты районов синтетические; стресс-тест не меняет расчёт сценария.',
     crises: CRISES.map(crisis => {
       const direct = result.actions.filter(action => crisis.direct.includes(action.id));
       const related = result.actions.filter(action => crisis.related.includes(action.id));
@@ -86,7 +86,6 @@ export function assessCityCrises(result) {
         title: crisis.title,
         period: crisis.period,
         context: crisis.context,
-        source: crisis.source,
         status,
         statusLabel: status === 'direct' ? 'Есть подходящие меры' : status === 'partial' ? 'Связь частичная' : 'Остаётся пробел',
         selected,
